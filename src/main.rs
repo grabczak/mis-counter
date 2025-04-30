@@ -118,7 +118,7 @@ impl Tree {
                 k = k * mu.get(&grandchild).unwrap_or(&0);
             }
 
-            k = k + nu.get(&node).unwrap_or(&k);
+            k = k + nu.get(&node).unwrap_or(&0);
 
             mu.insert(node, k);
         }
