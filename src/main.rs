@@ -105,15 +105,9 @@ impl Tree {
             let mut n = 1;
 
             for child in self.children(node) {
-                m = match mu.get(&child) {
-                    Some(value) => m * value,
-                    None => 0
-                };
+                m = m * mu.get(&child).unwrap_or(&0);
 
-                n = match nu.get(&child) {
-                    Some(value) => n * value,
-                    None => 0
-                };
+                n = n * nu.get(&child).unwrap_or(&0);
             }
 
             nu.insert(node, m - n);
@@ -121,24 +115,15 @@ impl Tree {
             let mut k = 1;
 
             for grandchild in self.grandchildren(node) {
-                k = match mu.get(&grandchild) {
-                    Some(value) => k * value,
-                    None => 0
-                };
+                k = k * mu.get(&grandchild).unwrap_or(&0);
             }
 
-            k = match nu.get(&node) {
-                Some(value) => k + value,
-                None => 0
-            };
+            k = k + nu.get(&node).unwrap_or(&k);
 
             mu.insert(node, k);
         }
 
-        match mu.get(&self.root) {
-            Some(value) => *value,
-            None => 0
-        }
+        *mu.get(&self.root).unwrap_or(&0)
     }
 }
 
