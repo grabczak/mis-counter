@@ -47,10 +47,10 @@ struct Result {
     running_time: String,
 }
 
-fn save_result_to_json(filename: &str, node_count: usize, mis_count: usize, running_time: u128) -> io::Result<String> {
+fn save_result_to_json(filename: &str, node_count: usize, mis_count: String, running_time: u128) -> io::Result<String> {
     let result = Result {
         node_count: node_count.to_string(),
-        mis_count: mis_count.to_string(),
+        mis_count: mis_count,
         running_time: running_time.to_string(),
     };
 

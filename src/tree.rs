@@ -1,6 +1,8 @@
 use std::collections::{HashMap, VecDeque};
 use rand::prelude::*;
 use rand::rng;
+use dashu_int::UBig;
+use dashu_macros::ubig;
 
 type Value = i32;
 type Children = Vec<Value>;
@@ -63,36 +65,36 @@ impl Tree {
         result
     }
 
-    pub fn count_mis(&self) -> usize {
-        let mut mu: HashMap<Value, usize> = HashMap::new();
-        let mut nu: HashMap<Value, usize> = HashMap::new();
+    pub fn count_mis(&self) -> String {
+        let mut mu: HashMap<Value, UBig> = HashMap::new();
+        let mut nu: HashMap<Value, UBig> = HashMap::new();
 
         let post_order_nodes = self.post_order();
 
         for node in post_order_nodes {
-            let mut m = 1;
-            let mut n = 1;
+            let mut m: UBig = ubig!(1);
+            let mut n: UBig = ubig!(1);
 
             for child in self.children(node) {
-                m = m * mu.get(&child).unwrap_or(&0);
+                m = m * mu.get(&child).unwrap_or(&ubig!(0));
 
-                n = n * nu.get(&child).unwrap_or(&0);
+                n = n * nu.get(&child).unwrap_or(&ubig!(0));
             }
 
             nu.insert(node, m - n);
 
-            let mut k = 1;
+            let mut k: UBig = ubig!(1);
 
             for grandchild in self.grandchildren(node) {
-                k = k * mu.get(&grandchild).unwrap_or(&0);
+                k = k * mu.get(&grandchild).unwrap_or(&ubig!(0));
             }
 
-            k = k + nu.get(&node).unwrap_or(&0);
+            k = k + nu.get(&node).unwrap_or(&ubig!(0));
 
             mu.insert(node, k);
         }
 
-        *mu.get(&self.root).unwrap_or(&0)
+        mu.get(&self.root).unwrap_or(&ubig!(0)).to_string()
     }
 
     pub fn print(&self) {
