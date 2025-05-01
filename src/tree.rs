@@ -115,8 +115,6 @@ impl Tree {
     }
 
     pub fn generate(node_count: usize, max_children: usize) -> Self {
-        assert!(node_count >= 1, "Tree must have at least one node");
-
         let mut rng = rng();
         let mut nodes: Nodes = HashMap::new();
         let all_values: Vec<Value> = (0..node_count as i32).collect(); // root is 0

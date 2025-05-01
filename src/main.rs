@@ -1,17 +1,11 @@
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{self, BufRead, BufWriter, Write};
+use std::time::{SystemTime, UNIX_EPOCH};
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
 mod tree;
 use tree::Tree;
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Result {
-    node_count: i32,
-    mis_count: i32,
-    running_time: i32,
-}
 
 fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<i32>>> {
     let file = File::open(filename)?;
@@ -32,7 +26,9 @@ fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<i32>>> {
 }
 
 fn save_tree_to_csv(tree: &Tree) -> std::io::Result<String> {
-    let filename = format!("{}.csv", Uuid::new_v4());
+    fs::create_dir_all("./gen/")?;
+
+    let filename = format!("./gen/{}.csv", Uuid::new_v4());
     let file = File::create(&filename)?;
     let mut writer = BufWriter::new(file);
 
@@ -44,11 +40,18 @@ fn save_tree_to_csv(tree: &Tree) -> std::io::Result<String> {
     Ok(filename)
 }
 
-fn save_result_to_json(filename: &str) -> io::Result<String> {
+#[derive(Serialize, Deserialize, Debug)]
+struct Result {
+    node_count: String,
+    mis_count: String,
+    running_time: String,
+}
+
+fn save_result_to_json(filename: &str, node_count: usize, mis_count: usize, running_time: u128) -> io::Result<String> {
     let result = Result {
-        node_count: 0,
-        mis_count: 0,
-        running_time: 0,
+        node_count: node_count.to_string(),
+        mis_count: mis_count.to_string(),
+        running_time: running_time.to_string(),
     };
 
     let serialized = serde_json::to_string_pretty(&result).unwrap();
@@ -95,11 +98,15 @@ fn main() {
 
                         tree.print();
 
+                        let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+
                         let mis_count = tree.count_mis();
+
+                        let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 
                         println!("MIS count: {}", mis_count);
 
-                        match save_result_to_json(&filename) {
+                        match save_result_to_json(&filename, tree.nodes.len(), mis_count, end - start) {
                             Ok(filename) => println!("Result saved in {}", filename),
                             Err(e) => eprintln!("Failed to save result: {}", e),
                         }
@@ -126,11 +133,15 @@ fn main() {
                     Ok(filename) => {
                         println!("Saved as {}", filename);
 
+                        let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+
                         let mis_count = tree.count_mis();
+
+                        let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 
                         println!("MIS count: {}", mis_count);
 
-                        match save_result_to_json(&filename) {
+                        match save_result_to_json(&filename, tree.nodes.len(), mis_count, end - start) {
                             Ok(filename) => println!("Result saved in {}", filename),
                             Err(e) => eprintln!("Failed to save result: {}", e),
                         }
