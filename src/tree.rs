@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use rand::prelude::*;
 use rand::rng;
 
@@ -96,9 +96,21 @@ impl Tree {
     }
 
     pub fn print(&self) {
-        println!("Root: {}", self.root);
-        for (node, children) in &self.nodes {
-            println!("{} -> {:?}", node, children);
+        let mut queue = VecDeque::new();
+        let mut visited = std::collections::HashSet::new();
+
+        queue.push_back(self.root);
+        visited.insert(self.root);
+
+        while let Some(current) = queue.pop_front() {
+            let children = self.nodes.get(&current).cloned().unwrap_or_default();
+            println!("{} -> {}", current, children.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" "));
+            for &child in &children {
+                if !visited.contains(&child) {
+                    queue.push_back(child);
+                    visited.insert(child);
+                }
+            }
         }
     }
 

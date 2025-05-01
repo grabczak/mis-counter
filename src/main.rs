@@ -91,7 +91,7 @@ fn main() {
                     Ok(data) => {
                         let tree = Tree::new(0, data);
 
-                        println!("Loaded tree from {}", filename);
+                        println!("Tree loaded from {}", filename);
 
                         tree.print();
 
