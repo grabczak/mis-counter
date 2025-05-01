@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead, BufWriter, Write};
 use std::path::Path;
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use rand::prelude::*;
 use rand::rng;
@@ -9,6 +10,13 @@ use uuid::Uuid;
 type Value = i32;
 type Children = Vec<Value>;
 type Nodes = HashMap<Value, Children>;
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Result {
+    node_count: i32,
+    mis_count: i32,
+    running_time: i32,
+}
 
 pub struct Tree {
     root: Value,
@@ -74,9 +82,9 @@ impl Tree {
         result
     }
 
-    fn count_mis(&self) -> i32 {
-        let mut mu: HashMap<Value, i32> = HashMap::new();
-        let mut nu: HashMap<Value, i32> = HashMap::new();
+    fn count_mis(&self) -> usize {
+        let mut mu: HashMap<Value, usize> = HashMap::new();
+        let mut nu: HashMap<Value, usize> = HashMap::new();
 
         let post_order_nodes = self.post_order();
 
@@ -174,26 +182,22 @@ fn read_file(filename: &str) -> io::Result<Vec<Vec<i32>>> {
     Ok(data)
 }
 
-fn save_file(filename: &str, value: &str) -> io::Result<()> {
-    let mut file = File::create(filename)?;
-    file.write_all(value.as_bytes())?;
-    Ok(())
-}
-
-fn insert_result_suffix(filename: &str) -> String {
-    let path = Path::new(filename);
-    let parent = path.parent().unwrap_or_else(|| Path::new(""));
-
-    let stem = path.file_stem().unwrap_or_default().to_string_lossy();
-    let extension = path.extension().unwrap_or_default().to_string_lossy();
-
-    let new_filename = if extension.is_empty() {
-        format!("{stem}-result")
-    } else {
-        format!("{stem}-result.{extension}")
+fn save_result(filename: &str) -> io::Result<String> {
+    let result = Result {
+        node_count: 0,
+        mis_count: 0,
+        running_time: 0,
     };
 
-    parent.join(new_filename).to_string_lossy().to_string()
+    let serialized = serde_json::to_string_pretty(&result).unwrap();
+
+    let result_filename = format!("{filename}.json");
+
+    let mut file = File::create(&result_filename)?;
+
+    file.write_all(serialized.as_bytes())?;
+
+    Ok(result_filename)
 }
 
 fn main() {
@@ -235,10 +239,8 @@ fn main() {
 
                         println!("MIS count: {}", mis_count);
 
-                        let result_filename = insert_result_suffix(filename);
-
-                        match save_file(&result_filename, &mis_count.to_string()) {
-                            Ok(()) => println!("Result saved in {}", result_filename),
+                        match save_result(&filename) {
+                            Ok(filename) => println!("Result saved in {}", filename),
                             Err(e) => eprintln!("Failed to save result: {}", e),
                         }
                     },
@@ -246,14 +248,47 @@ fn main() {
                 }
             },
             "2" => {
-                let tree = Tree::generate_random_tree(10, 3);
+                println!("Enter node count: ");
+
+                let mut node_count = String::new();
+
+                io::stdin()
+                    .read_line(&mut node_count)
+                    .expect("Failed to read node count");
+
+                println!("Enter max children: ");
+
+                let mut max_children = String::new();
+
+                io::stdin()
+                    .read_line(&mut max_children)
+                    .expect("Failed to read max children");
+
+                let node_count = node_count.trim().parse::<usize>().unwrap_or(10);
+                let max_children = max_children.trim().parse::<usize>().unwrap_or(3);
+
+                println!("node_count: {}", node_count);
+                println!("max_children: {}", max_children);
+
+                let tree = Tree::generate_random_tree(node_count, max_children);
 
                 println!("Generated tree: ");
 
                 tree.print();
 
                 match tree.save_to_file_as_csv() {
-                    Ok(filename) => println!("Saved as {}", filename),
+                    Ok(filename) => {
+                        println!("Saved as {}", filename);
+
+                        let mis_count = tree.count_mis();
+
+                        println!("MIS count: {}", mis_count);
+
+                        match save_result(&filename) {
+                            Ok(filename) => println!("Result saved in {}", filename),
+                            Err(e) => eprintln!("Failed to save result: {}", e),
+                        }
+                    },
                     Err(e) => eprintln!("Failed to save: {}", e)
                 }
             },
