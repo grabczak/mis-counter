@@ -96,7 +96,13 @@ fn main() {
 
                         println!("Tree loaded from {}", filename);
 
-                        tree.print();
+                        let node_count = tree.nodes.len();
+
+                        if node_count < 101 {
+                            tree.print();
+                        } else {
+                            println!("Tree too large to print");
+                        }
 
                         let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 
@@ -106,7 +112,11 @@ fn main() {
 
                         println!("MIS count: {}", mis_count);
 
-                        match save_result_to_json(&filename, tree.nodes.len(), mis_count, end - start) {
+                        let running_time = end - start;
+
+                        println!("Completed in {} ms", running_time);
+
+                        match save_result_to_json(&filename, node_count, mis_count, running_time) {
                             Ok(filename) => println!("Result saved in {}", filename),
                             Err(e) => eprintln!("Failed to save result: {}", e),
                         }
@@ -127,7 +137,11 @@ fn main() {
 
                 let tree = Tree::generate(node_count, max_children);
 
-                tree.print();
+                if node_count < 101 {
+                    tree.print();
+                } else {
+                    println!("Tree too large to print");
+                }
 
                 match save_tree_to_csv(&tree) {
                     Ok(filename) => {
@@ -141,7 +155,11 @@ fn main() {
 
                         println!("MIS count: {}", mis_count);
 
-                        match save_result_to_json(&filename, tree.nodes.len(), mis_count, end - start) {
+                        let running_time = end - start;
+
+                        println!("Completed in {} ms", running_time);
+
+                        match save_result_to_json(&filename, node_count, mis_count, running_time) {
                             Ok(filename) => println!("Result saved in {}", filename),
                             Err(e) => eprintln!("Failed to save result: {}", e),
                         }
