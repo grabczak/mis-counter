@@ -77,12 +77,13 @@ fn read_input() -> String {
 
 fn main() {
     loop {
-        println!("Pick an option: ");
         println!("1. Read");
         println!("2. Generate");
         println!("3. Quit");
 
         let option = read_input();
+
+        println!();
 
         match option.as_str() {
             "1" => {
@@ -98,7 +99,7 @@ fn main() {
 
                         let node_count = tree.nodes.len();
 
-                        if node_count < 101 {
+                        if node_count <= 100 {
                             tree.print();
                         } else {
                             println!("Tree too large to print");
@@ -125,19 +126,19 @@ fn main() {
                 }
             },
             "2" => {
-                println!("Enter node count (default 10): ");
+                println!("Enter node count (default 100): ");
 
-                let node_count = read_input().parse::<usize>().unwrap_or(10);
+                let node_count = read_input().parse::<usize>().unwrap_or(100);
 
-                println!("Enter max children (default 3): ");
+                println!("Enter max children (default equal to node count): ");
 
-                let max_children = read_input().parse::<usize>().unwrap_or(3);
+                let max_children = read_input().parse::<usize>().unwrap_or(node_count);
 
                 println!("Generating a tree with {} nodes, each node with at most {} children", node_count, max_children);
 
                 let tree = Tree::generate(node_count, max_children);
 
-                if node_count < 101 {
+                if node_count <= 100 {
                     tree.print();
                 } else {
                     println!("Tree too large to print");
@@ -174,5 +175,7 @@ fn main() {
                 continue;
             },
         }
+
+        println!();
     }
 }
