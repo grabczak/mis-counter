@@ -1,5 +1,6 @@
 use std::fs::File;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Write};
+use std::path::Path;
 use std::collections::HashMap;
 
 type Value = i32;
@@ -73,7 +74,7 @@ impl Tree {
         result
     }
 
-    fn mis_count(&self) -> i32 {
+    fn count_mis(&self) -> i32 {
         let mut mu: HashMap<Value, i32> = HashMap::new();
         let mut nu: HashMap<Value, i32> = HashMap::new();
 
@@ -124,23 +125,83 @@ fn read_file(filename: &str) -> io::Result<Vec<Vec<i32>>> {
     Ok(data)
 }
 
+fn save_file(filename: &str, value: &str) -> io::Result<()> {
+    let mut file = File::create(filename)?;
+    file.write_all(value.as_bytes())?;
+    Ok(())
+}
+
+fn insert_result_suffix(filename: &str) -> String {
+    let path = Path::new(filename);
+    let parent = path.parent().unwrap_or_else(|| Path::new(""));
+
+    let stem = path.file_stem().unwrap_or_default().to_string_lossy();
+    let extension = path.extension().unwrap_or_default().to_string_lossy();
+
+    let new_filename = if extension.is_empty() {
+        format!("{stem}-result")
+    } else {
+        format!("{stem}-result.{extension}")
+    };
+
+    parent.join(new_filename).to_string_lossy().to_string()
+}
+
 fn main() {
-    println!("Enter the file name:");
+    loop {
+        println!("Pick an option: ");
+        println!("1. Read");
+        println!("2. Generate");
+        println!("3. Quit");
 
-    let mut filename = String::new();
+        let mut option = String::new();
 
-    io::stdin()
-        .read_line(&mut filename)
-        .expect("Failed to read file name");
+        io::stdin()
+            .read_line(&mut option)
+            .expect("Failed to read filename");
 
-    let filename = filename.trim();
+        let option = option.trim();
 
-    match read_file(filename) {
-        Ok(data) => {
-            let tree = Tree::new(0, data);
+        match option {
+            "1" => {
+                println!("Enter the filename: ");
 
-            tree.print();
-        },
-        Err(e) => eprintln!("Failed to read file: {}", e),
+                let mut filename = String::new();
+
+                io::stdin()
+                    .read_line(&mut filename)
+                    .expect("Failed to read filename");
+
+                let filename = filename.trim();
+
+                match read_file(filename) {
+                    Ok(data) => {
+                        let tree = Tree::new(0, data);
+
+                        println!("Loaded tree from {}", filename);
+
+                        tree.print();
+
+                        let mis_count = tree.count_mis();
+
+                        println!("MIS count: {}", mis_count);
+
+                        let result_filename = insert_result_suffix(filename);
+
+                        match save_file(&result_filename, &mis_count.to_string()) {
+                            Ok(()) => println!("Result saved in {}", result_filename),
+                            Err(e) => eprintln!("Failed to save result: {}", e),
+                        }
+                    },
+                    Err(e) => eprintln!("Failed to read file: {}", e),
+                }
+            },
+            "3" => {
+                break;
+            },
+            _ => {
+                continue;
+            },
+        }
     }
 }
