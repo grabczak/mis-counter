@@ -1,9 +1,10 @@
 use std::fs::File;
-use std::io::{self, BufRead, Write};
+use std::io::{self, BufRead, BufWriter, Write};
 use std::path::Path;
 use std::collections::HashMap;
 use rand::prelude::*;
 use rand::rng;
+use uuid::Uuid;
 
 type Value = i32;
 type Children = Vec<Value>;
@@ -140,6 +141,19 @@ impl Tree {
 
         Tree { root, nodes }
     }
+
+    pub fn save_to_file_as_csv(&self) -> std::io::Result<String> {
+        let filename = format!("{}.csv", Uuid::new_v4());
+        let file = File::create(&filename)?;
+        let mut writer = BufWriter::new(file);
+
+        for (parent, children) in &self.nodes {
+            let line = format!("{} {}", parent, children.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" "));
+            writeln!(writer, "{}", line)?;
+        }
+
+        Ok(filename)
+    }
 }
 
 fn read_file(filename: &str) -> io::Result<Vec<Vec<i32>>> {
@@ -232,11 +246,16 @@ fn main() {
                 }
             },
             "2" => {
-                let tree = Tree::generate_random_tree(100, 3);
+                let tree = Tree::generate_random_tree(10, 3);
 
                 println!("Generated tree: ");
 
                 tree.print();
+
+                match tree.save_to_file_as_csv() {
+                    Ok(filename) => println!("Saved as {}", filename),
+                    Err(e) => eprintln!("Failed to save: {}", e)
+                }
             },
             "3" => {
                 break;
