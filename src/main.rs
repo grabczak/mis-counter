@@ -12,50 +12,29 @@ pub struct Tree {
 }
 
 impl Tree {
-    fn new(root: Value) -> Self {
-        Tree {
-            root,
-            nodes: HashMap::new(),
-        }
-    }
+    fn new(root: Value, data: Vec<Vec<Value>>) -> Self {
+        let mut nodes: Nodes = HashMap::new();
 
-    fn insert(&mut self, node: Value, children: Children) {
-        self.nodes.insert(node, children);
-    }
-
-    // fn print(&self) {
-    //     for (value, children) in &self.nodes {
-    //         print!("{} ", value);
-    //         for child in children {
-    //             print!("{} ", child);
-    //         }
-    //         println!("")
-    //     }
-    // }
-
-    fn build(&mut self, filename: &str) -> io::Result<()> {
-        let file = File::open(filename)?;
-        let reader = io::BufReader::new(file);
-    
-        let mut lines: Vec<Vec<i32>> = Vec::new();
-    
-        for line_result in reader.lines() {
-            let line = line_result?;
-            let numbers: Vec<i32> = line
-                .split(' ')
-                .filter_map(|s| s.trim().parse::<i32>().ok())
-                .collect();
-            lines.push(numbers);
-        }
-
-        for line in lines {
-            match line.split_first() {
-                Some((value, children)) => self.insert(*value, children.to_vec()),
+        for node in data {
+            match node.split_first() {
+                Some((value, children)) => {
+                    nodes.insert(*value, children.to_vec());
+                },
                 None => ()
             }
         }
 
-        Ok(())
+        Tree { root, nodes }
+    }
+
+    fn print(&self) {
+        for (value, children) in &self.nodes {
+            print!("{} ", value);
+            for child in children {
+                print!("{} ", child);
+            }
+            println!("")
+        }
     }
 
     fn children(&self, node: Value) -> Vec<Value> {
@@ -127,11 +106,41 @@ impl Tree {
     }
 }
 
-fn main() {
-    let mut tree = Tree::new(0);
+fn read_file(filename: &str) -> io::Result<Vec<Vec<i32>>> {
+    let file = File::open(filename)?;
+    let reader = io::BufReader::new(file);
 
-    match tree.build("example.csv") {
-        Ok(_) => println!("Mis count: {}", tree.mis_count()),
-        Err(e) => eprintln!("Error reading file: {}", e)
+    let mut data: Vec<Vec<i32>> = Vec::new();
+
+    for line_result in reader.lines() {
+        let line = line_result?;
+        let numbers: Vec<i32> = line
+            .split(' ')
+            .filter_map(|s| s.trim().parse::<i32>().ok())
+            .collect();
+        data.push(numbers);
+    }
+
+    Ok(data)
+}
+
+fn main() {
+    println!("Enter the file name:");
+
+    let mut filename = String::new();
+
+    io::stdin()
+        .read_line(&mut filename)
+        .expect("Failed to read file name");
+
+    let filename = filename.trim();
+
+    match read_file(filename) {
+        Ok(data) => {
+            let tree = Tree::new(0, data);
+
+            tree.print();
+        },
+        Err(e) => eprintln!("Failed to read file: {}", e),
     }
 }
