@@ -27,13 +27,6 @@ impl Tree {
         Tree { root, nodes }
     }
 
-    pub fn print(&self) {
-        println!("Root: {}", self.root);
-        for (node, children) in &self.nodes {
-            println!("{} -> {:?}", node, children);
-        }
-    }
-
     pub fn children(&self, node: Value) -> Vec<Value> {
         self.nodes.get(&node).cloned().unwrap_or_else(Vec::new)
     }
@@ -102,7 +95,14 @@ impl Tree {
         *mu.get(&self.root).unwrap_or(&0)
     }
 
-    pub fn generate_random_tree(node_count: usize, max_children: usize) -> Self {
+    pub fn print(&self) {
+        println!("Root: {}", self.root);
+        for (node, children) in &self.nodes {
+            println!("{} -> {:?}", node, children);
+        }
+    }
+
+    pub fn generate(node_count: usize, max_children: usize) -> Self {
         assert!(node_count >= 1, "Tree must have at least one node");
 
         let mut rng = rng();

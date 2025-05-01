@@ -38,7 +38,7 @@ fn save_tree_to_csv(tree: &Tree) -> std::io::Result<String> {
 
     for (parent, children) in &tree.nodes {
         let line = format!("{} {}", parent, children.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" "));
-        writeln!(writer, "{}", line)?;
+        writeln!(writer, "{}", line.trim())?;
     }
 
     Ok(filename)
@@ -62,6 +62,16 @@ fn save_result_to_json(filename: &str) -> io::Result<String> {
     Ok(result_filename)
 }
 
+fn read_input() -> String {
+    let mut input = String::new();
+
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read input");
+
+    input.trim().to_string()
+}
+
 fn main() {
     loop {
         println!("Pick an option: ");
@@ -69,27 +79,15 @@ fn main() {
         println!("2. Generate");
         println!("3. Quit");
 
-        let mut option = String::new();
+        let option = read_input();
 
-        io::stdin()
-            .read_line(&mut option)
-            .expect("Failed to read filename");
-
-        let option = option.trim();
-
-        match option {
+        match option.as_str() {
             "1" => {
                 println!("Enter the filename: ");
 
-                let mut filename = String::new();
+                let filename = read_input();
 
-                io::stdin()
-                    .read_line(&mut filename)
-                    .expect("Failed to read filename");
-
-                let filename = filename.trim();
-
-                match read_tree_from_csv(filename) {
+                match read_tree_from_csv(filename.as_str()) {
                     Ok(data) => {
                         let tree = Tree::new(0, data);
 
@@ -110,31 +108,17 @@ fn main() {
                 }
             },
             "2" => {
-                println!("Enter node count: ");
+                println!("Enter node count (default 10): ");
 
-                let mut node_count = String::new();
+                let node_count = read_input().parse::<usize>().unwrap_or(10);
 
-                io::stdin()
-                    .read_line(&mut node_count)
-                    .expect("Failed to read node count");
+                println!("Enter max children (default 3): ");
 
-                println!("Enter max children: ");
+                let max_children = read_input().parse::<usize>().unwrap_or(3);
 
-                let mut max_children = String::new();
+                println!("Generating a tree with {} nodes, each node with at most {} children", node_count, max_children);
 
-                io::stdin()
-                    .read_line(&mut max_children)
-                    .expect("Failed to read max children");
-
-                let node_count = node_count.trim().parse::<usize>().unwrap_or(10);
-                let max_children = max_children.trim().parse::<usize>().unwrap_or(3);
-
-                println!("node_count: {}", node_count);
-                println!("max_children: {}", max_children);
-
-                let tree = Tree::generate_random_tree(node_count, max_children);
-
-                println!("Generated tree: ");
+                let tree = Tree::generate(node_count, max_children);
 
                 tree.print();
 
