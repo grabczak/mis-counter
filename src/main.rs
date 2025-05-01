@@ -1,6 +1,7 @@
 use std::fs::File;
-use std::io::{self, BufRead, Write};
+use std::io::{self, BufRead, BufWriter, Write};
 use serde::{Serialize, Deserialize};
+use uuid::Uuid;
 
 mod tree;
 use tree::Tree;
@@ -12,7 +13,7 @@ struct Result {
     running_time: i32,
 }
 
-fn read_file(filename: &str) -> io::Result<Vec<Vec<i32>>> {
+fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<i32>>> {
     let file = File::open(filename)?;
     let reader = io::BufReader::new(file);
 
@@ -30,7 +31,20 @@ fn read_file(filename: &str) -> io::Result<Vec<Vec<i32>>> {
     Ok(data)
 }
 
-fn save_result(filename: &str) -> io::Result<String> {
+fn save_tree_to_csv(tree: &Tree) -> std::io::Result<String> {
+    let filename = format!("{}.csv", Uuid::new_v4());
+    let file = File::create(&filename)?;
+    let mut writer = BufWriter::new(file);
+
+    for (parent, children) in &tree.nodes {
+        let line = format!("{} {}", parent, children.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" "));
+        writeln!(writer, "{}", line)?;
+    }
+
+    Ok(filename)
+}
+
+fn save_result_to_json(filename: &str) -> io::Result<String> {
     let result = Result {
         node_count: 0,
         mis_count: 0,
@@ -75,7 +89,7 @@ fn main() {
 
                 let filename = filename.trim();
 
-                match read_file(filename) {
+                match read_tree_from_csv(filename) {
                     Ok(data) => {
                         let tree = Tree::new(0, data);
 
@@ -87,7 +101,7 @@ fn main() {
 
                         println!("MIS count: {}", mis_count);
 
-                        match save_result(&filename) {
+                        match save_result_to_json(&filename) {
                             Ok(filename) => println!("Result saved in {}", filename),
                             Err(e) => eprintln!("Failed to save result: {}", e),
                         }
@@ -124,7 +138,7 @@ fn main() {
 
                 tree.print();
 
-                match tree.save_to_file_as_csv() {
+                match save_tree_to_csv(&tree) {
                     Ok(filename) => {
                         println!("Saved as {}", filename);
 
@@ -132,7 +146,7 @@ fn main() {
 
                         println!("MIS count: {}", mis_count);
 
-                        match save_result(&filename) {
+                        match save_result_to_json(&filename) {
                             Ok(filename) => println!("Result saved in {}", filename),
                             Err(e) => eprintln!("Failed to save result: {}", e),
                         }

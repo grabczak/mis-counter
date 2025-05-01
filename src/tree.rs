@@ -1,17 +1,14 @@
-use std::fs::File;
-use std::io::{BufWriter, Write};
 use std::collections::HashMap;
 use rand::prelude::*;
 use rand::rng;
-use uuid::Uuid;
 
 type Value = i32;
 type Children = Vec<Value>;
 type Nodes = HashMap<Value, Children>;
 
 pub struct Tree {
-    root: Value,
-    nodes: Nodes,
+    pub root: Value,
+    pub nodes: Nodes,
 }
 
 impl Tree {
@@ -37,11 +34,11 @@ impl Tree {
         }
     }
 
-    fn children(&self, node: Value) -> Vec<Value> {
+    pub fn children(&self, node: Value) -> Vec<Value> {
         self.nodes.get(&node).cloned().unwrap_or_else(Vec::new)
     }
 
-    fn grandchildren(&self, node: Value) -> Vec<Value> {
+    pub fn grandchildren(&self, node: Value) -> Vec<Value> {
         let mut result = Vec::new();
 
         if let Some(children) = self.nodes.get(&node) {
@@ -55,7 +52,7 @@ impl Tree {
         result
     }
 
-    fn post_order(&self) -> Vec<Value> {
+    pub fn post_order(&self) -> Vec<Value> {
         fn _order(tree: &Tree, node: Value, result: &mut Vec<Value>) {
             if let Some(children) = tree.nodes.get(&node) {
                 for &child in children {
@@ -139,18 +136,5 @@ impl Tree {
         }
 
         Tree { root, nodes }
-    }
-
-    pub fn save_to_file_as_csv(&self) -> std::io::Result<String> {
-        let filename = format!("{}.csv", Uuid::new_v4());
-        let file = File::create(&filename)?;
-        let mut writer = BufWriter::new(file);
-
-        for (parent, children) in &self.nodes {
-            let line = format!("{} {}", parent, children.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" "));
-            writeln!(writer, "{}", line)?;
-        }
-
-        Ok(filename)
     }
 }
