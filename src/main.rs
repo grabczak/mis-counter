@@ -2,6 +2,8 @@ use std::fs::File;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
 use std::collections::HashMap;
+use rand::prelude::*;
+use rand::rng;
 
 type Value = i32;
 type Children = Vec<Value>;
@@ -28,13 +30,10 @@ impl Tree {
         Tree { root, nodes }
     }
 
-    fn print(&self) {
-        for (value, children) in &self.nodes {
-            print!("{} ", value);
-            for child in children {
-                print!("{} ", child);
-            }
-            println!("")
+    pub fn print(&self) {
+        println!("Root: {}", self.root);
+        for (node, children) in &self.nodes {
+            println!("{} -> {:?}", node, children);
         }
     }
 
@@ -104,6 +103,42 @@ impl Tree {
         }
 
         *mu.get(&self.root).unwrap_or(&0)
+    }
+
+    pub fn generate_random_tree(node_count: usize, max_children: usize) -> Self {
+        assert!(node_count >= 1, "Tree must have at least one node");
+
+        let mut rng = rng();
+        let mut nodes: Nodes = HashMap::new();
+        let all_values: Vec<Value> = (0..node_count as i32).collect(); // root is 0
+
+        let root = 0;
+        let mut index = 1; // Start from 1 (0 is root)
+        let mut queue = vec![root];
+
+        while !queue.is_empty() && index < node_count {
+            let parent = queue.remove(0);
+            let mut children = Vec::new();
+
+            let remaining = node_count - index;
+            let max_assignable = remaining.min(max_children);
+            let child_count = rng.random_range(1..=max_assignable);
+
+            for _ in 0..child_count {
+                let child = all_values[index];
+                index += 1;
+                children.push(child);
+                queue.push(child);
+            }
+
+            nodes.insert(parent, children);
+        }
+
+        for value in all_values.iter() {
+            nodes.entry(*value).or_insert_with(Vec::new);
+        }
+
+        Tree { root, nodes }
     }
 }
 
@@ -195,6 +230,13 @@ fn main() {
                     },
                     Err(e) => eprintln!("Failed to read file: {}", e),
                 }
+            },
+            "2" => {
+                let tree = Tree::generate_random_tree(100, 3);
+
+                println!("Generated tree: ");
+
+                tree.print();
             },
             "3" => {
                 break;
