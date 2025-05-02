@@ -7,17 +7,17 @@ use uuid::Uuid;
 mod tree;
 use tree::Tree;
 
-fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<i32>>> {
+fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<usize>>> {
     let file = File::open(filename)?;
     let reader = io::BufReader::new(file);
 
-    let mut data: Vec<Vec<i32>> = Vec::new();
+    let mut data: Vec<Vec<usize>> = Vec::new();
 
     for line_result in reader.lines() {
         let line = line_result?;
-        let numbers: Vec<i32> = line
+        let numbers: Vec<usize> = line
             .split(' ')
-            .filter_map(|s| s.trim().parse::<i32>().ok())
+            .filter_map(|s| s.trim().parse::<usize>().ok())
             .collect();
         data.push(numbers);
     }
@@ -32,7 +32,7 @@ fn save_tree_to_csv(tree: &Tree) -> std::io::Result<String> {
     let file = File::create(&filename)?;
     let mut writer = BufWriter::new(file);
 
-    for (parent, children) in &tree.nodes {
+    for (parent, children) in tree.get_nodes() {
         let line = format!("{} {}", parent, children.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" "));
         writeln!(writer, "{}", line.trim())?;
     }
@@ -97,7 +97,7 @@ fn main() {
 
                         println!("Tree loaded from {}", filename);
 
-                        let node_count = tree.nodes.len();
+                        let node_count = tree.node_count();
 
                         if node_count <= 100 {
                             tree.print();

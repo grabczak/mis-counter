@@ -1,58 +1,51 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use rand::prelude::*;
 use rand::rng;
 use dashu_int::UBig;
 use dashu_macros::ubig;
 
-type Value = i32;
-type Children = Vec<Value>;
-type Nodes = HashMap<Value, Children>;
+type Node = usize;
+type Children = Vec<Node>;
+type Nodes = HashMap<Node, Children>;
 
 pub struct Tree {
-    pub root: Value,
-    pub nodes: Nodes,
+    root: Node,
+    nodes: Nodes,
 }
 
 impl Tree {
-    pub fn new(root: Value, data: Vec<Vec<Value>>) -> Self {
+    pub fn new(root: Node, csv: Vec<Vec<Node>>) -> Self {
         let mut nodes: Nodes = HashMap::new();
 
-        for node in data {
-            match node.split_first() {
-                Some((value, children)) => {
-                    nodes.insert(*value, children.to_vec());
-                },
-                None => ()
+        for node in csv {
+            if let Some((node, children)) = node.split_first() {
+                nodes.insert(*node, children.to_vec());
             }
         }
 
         Tree { root, nodes }
     }
 
-    pub fn children(&self, node: Value) -> Vec<Value> {
-        self.nodes.get(&node).cloned().unwrap_or_else(Vec::new)
+    pub fn get_nodes(&self) -> Nodes {
+        self.nodes.clone()
     }
 
-    pub fn grandchildren(&self, node: Value) -> Vec<Value> {
-        let mut result = Vec::new();
-
-        if let Some(children) = self.nodes.get(&node) {
-            for &child in children {
-                if let Some(grandchildren) = self.nodes.get(&child) {
-                    result.extend(grandchildren.iter().cloned());
-                }
-            }
-        }
-
-        result
+    pub fn node_count(&self) -> usize {
+        self.nodes.len()
     }
 
-    pub fn post_order(&self) -> Vec<Value> {
-        fn _order(tree: &Tree, node: Value, result: &mut Vec<Value>) {
-            if let Some(children) = tree.nodes.get(&node) {
-                for &child in children {
-                    _order(tree, child, result);
-                }
+    fn children(&self, node: Node) -> Children {
+        self.nodes.get(&node).unwrap_or(&Vec::new()).to_vec()
+    }
+
+    fn grandchildren(&self, node: Node) -> Children {
+        self.children(node).iter().flat_map(|child| self.children(*child)).collect()
+    }
+
+    fn post_order(&self) -> Vec<Node> {
+        fn _order(tree: &Tree, node: Node, result: &mut Vec<Node>) {
+            for child in tree.children(node) {
+                _order(tree, child, result);
             }
 
             result.push(node);
@@ -66,8 +59,8 @@ impl Tree {
     }
 
     pub fn count_mis(&self) -> String {
-        let mut mu: HashMap<Value, UBig> = HashMap::new();
-        let mut nu: HashMap<Value, UBig> = HashMap::new();
+        let mut mu: HashMap<Node, UBig> = HashMap::new();
+        let mut nu: HashMap<Node, UBig> = HashMap::new();
 
         let post_order_nodes = self.post_order();
 
@@ -99,14 +92,16 @@ impl Tree {
 
     pub fn print(&self) {
         let mut queue = VecDeque::new();
-        let mut visited = std::collections::HashSet::new();
+        let mut visited = HashSet::new();
 
         queue.push_back(self.root);
         visited.insert(self.root);
 
         while let Some(current) = queue.pop_front() {
-            let children = self.nodes.get(&current).cloned().unwrap_or_default();
-            println!("{} -> {}", current, children.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" "));
+            let children = self.children(current);
+
+            println!("{} -> {}", current, children.iter().map(|c| c.to_string()).collect::<Vec<String>>().join(" "));
+
             for &child in &children {
                 if !visited.contains(&child) {
                     queue.push_back(child);
@@ -119,11 +114,11 @@ impl Tree {
     pub fn generate(node_count: usize, max_children: usize) -> Self {
         let mut rng = rng();
         let mut nodes: Nodes = HashMap::new();
-        let all_values: Vec<Value> = (0..node_count as i32).collect(); // root is 0
+        let all_values: Vec<Node> = Vec::from_iter(0..node_count); // root is 0
 
         let root = 0;
-        let mut index = 1; // Start from 1 (0 is root)
-        let mut queue = vec![root];
+        let mut index = 1;
+        let mut queue = Vec::from([0]);
 
         while !queue.is_empty() && index < node_count {
             let parent = queue.remove(0);
