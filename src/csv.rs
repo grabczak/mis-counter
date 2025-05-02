@@ -1,7 +1,7 @@
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufWriter, Write};
 use std::collections::HashMap;
-use uuid::Uuid;
+use chrono::Local;
 
 pub fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<usize>>> {
     let file = File::open(filename)?;
@@ -24,7 +24,7 @@ pub fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<usize>>> {
 pub fn save_tree_to_csv(nodes: HashMap<usize, Vec<usize>>) -> io::Result<String> {
     fs::create_dir_all("./gen/")?;
 
-    let filename = format!("./gen/{}.csv", Uuid::new_v4());
+    let filename = format!("./gen/{}.csv", Local::now().format("%Y-%m-%d-%H-%M-%S-%3f"));
     let file = File::create(&filename)?;
     let mut writer = BufWriter::new(file);
 
