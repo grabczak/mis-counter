@@ -20,6 +20,44 @@ fn read_input() -> String {
     input.trim().to_string()
 }
 
+fn display_mis_count(filename: String) -> () {
+    match read_tree_from_csv(filename.as_str()) {
+        Ok(data) => {
+            let tree = Tree::new(0, data);
+
+            println!("Tree loaded from {}", filename);
+
+            let node_count = tree.node_count();
+
+            if node_count <= 100 {
+                println!();
+                tree.print();
+                println!();
+            } else {
+                println!("Tree too large to display");
+            }
+
+            let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+
+            let mis_count = tree.count_mis();
+
+            let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+
+            println!("MIS count: {}", mis_count);
+
+            let running_time = end - start;
+
+            println!("Completed in {} ms", running_time);
+
+            match save_result_to_json(&filename, node_count.to_string(), mis_count.to_string(), running_time.to_string()) {
+                Ok(filename) => println!("Result saved as {}", filename),
+                Err(e) => eprintln!("Failed to save result: {}", e),
+            }
+        },
+        Err(e) => eprintln!("Failed to read file: {}", e),
+    }
+}
+
 fn main() {
     loop {
         println!("1. Read");
@@ -36,44 +74,12 @@ fn main() {
 
                 let filename = read_input();
 
-                match read_tree_from_csv(filename.as_str()) {
-                    Ok(data) => {
-                        let tree = Tree::new(0, data);
-
-                        println!("Tree loaded from {}", filename);
-
-                        let node_count = tree.node_count();
-
-                        if node_count <= 100 {
-                            tree.print();
-                        } else {
-                            println!("Tree too large to print");
-                        }
-
-                        let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
-
-                        let mis_count = tree.count_mis();
-
-                        let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
-
-                        println!("MIS count: {}", mis_count);
-
-                        let running_time = end - start;
-
-                        println!("Completed in {} ms", running_time);
-
-                        match save_result_to_json(&filename, node_count.to_string(), mis_count.to_string(), running_time.to_string()) {
-                            Ok(filename) => println!("Result saved in {}", filename),
-                            Err(e) => eprintln!("Failed to save result: {}", e),
-                        }
-                    },
-                    Err(e) => eprintln!("Failed to read file: {}", e),
-                }
+                display_mis_count(filename);
             },
             "2" => {
-                println!("Enter node count (default 100): ");
+                println!("Enter node count (default 10): ");
 
-                let node_count = read_input().parse::<usize>().unwrap_or(100);
+                let node_count = read_input().parse::<usize>().unwrap_or(10);
 
                 println!("Enter max children (default equal to node count): ");
 
@@ -83,32 +89,11 @@ fn main() {
 
                 let tree = Tree::generate(node_count, max_children);
 
-                if node_count <= 100 {
-                    tree.print();
-                } else {
-                    println!("Tree too large to print");
-                }
-
                 match save_tree_to_csv(tree.get_nodes()) {
                     Ok(filename) => {
-                        println!("Saved as {}", filename);
+                        println!("Tree saved as {}", filename);
 
-                        let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
-
-                        let mis_count = tree.count_mis();
-
-                        let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
-
-                        println!("MIS count: {}", mis_count);
-
-                        let running_time = end - start;
-
-                        println!("Completed in {} ms", running_time);
-
-                        match save_result_to_json(&filename, node_count.to_string(), mis_count.to_string(), running_time.to_string()) {
-                            Ok(filename) => println!("Result saved in {}", filename),
-                            Err(e) => eprintln!("Failed to save result: {}", e),
-                        }
+                        display_mis_count(filename);
                     },
                     Err(e) => eprintln!("Failed to save: {}", e)
                 }
