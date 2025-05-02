@@ -12,7 +12,7 @@ pub fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<usize>>> {
     for line_result in reader.lines() {
         let line = line_result?;
         let numbers: Vec<usize> = line
-            .split(' ')
+            .split_whitespace()
             .filter_map(|s| s.trim().parse::<usize>().ok())
             .collect();
         data.push(numbers);
