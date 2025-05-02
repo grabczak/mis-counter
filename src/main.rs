@@ -95,6 +95,8 @@ fn main() {
 
                 let tree = Tree::generate(node_count, max_children);
 
+                println!("Tree generated successfully");
+
                 println!("Saving tree...");
 
                 match save_tree_to_csv(tree.get_nodes()) {
@@ -113,5 +115,7 @@ fn main() {
                 continue;
             },
         }
+
+        println!("");
     }
 }
