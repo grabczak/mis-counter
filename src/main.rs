@@ -29,13 +29,13 @@ fn display_mis_count(filename: String) -> () {
 
             let node_count = tree.node_count();
 
+            println!();
             if node_count <= 100 {
-                println!();
                 tree.print();
-                println!();
             } else {
                 println!("Tree too large to display");
             }
+            println!();
 
             let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 
@@ -43,7 +43,11 @@ fn display_mis_count(filename: String) -> () {
 
             let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 
-            println!("MIS count: {}", mis_count);
+            if mis_count.len() <= 100 {
+                println!("MIS count: {}", mis_count);
+            } else {
+                println!("MIS count too large to display");
+            }
 
             let running_time = end - start;
 
