@@ -132,7 +132,7 @@ fn main() {
 
                 println!("Enter max children (default equal to node count): ");
 
-                let max_children = read_input().parse::<usize>().unwrap_or(node_count);
+                let max_children = read_input().parse::<usize>().unwrap_or(node_count).clamp(1, node_count);
 
                 println!("Generating a tree with {} nodes, each node with at most {} children", node_count, max_children);
 
