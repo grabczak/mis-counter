@@ -1,69 +1,14 @@
-use std::fs::{self, File};
-use std::io::{self, BufRead, BufWriter, Write};
+use std::io;
 use std::time::{SystemTime, UNIX_EPOCH};
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
 
 mod tree;
 use tree::Tree;
 
-fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<usize>>> {
-    let file = File::open(filename)?;
-    let reader = io::BufReader::new(file);
+mod csv;
+use csv::{read_tree_from_csv, save_tree_to_csv};
 
-    let mut data: Vec<Vec<usize>> = Vec::new();
-
-    for line_result in reader.lines() {
-        let line = line_result?;
-        let numbers: Vec<usize> = line
-            .split(' ')
-            .filter_map(|s| s.trim().parse::<usize>().ok())
-            .collect();
-        data.push(numbers);
-    }
-
-    Ok(data)
-}
-
-fn save_tree_to_csv(tree: &Tree) -> std::io::Result<String> {
-    fs::create_dir_all("./gen/")?;
-
-    let filename = format!("./gen/{}.csv", Uuid::new_v4());
-    let file = File::create(&filename)?;
-    let mut writer = BufWriter::new(file);
-
-    for (parent, children) in tree.get_nodes() {
-        let line = format!("{} {}", parent, children.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" "));
-        writeln!(writer, "{}", line.trim())?;
-    }
-
-    Ok(filename)
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Result {
-    node_count: String,
-    mis_count: String,
-    running_time: String,
-}
-
-fn save_result_to_json(filename: &str, node_count: usize, mis_count: String, running_time: u128) -> io::Result<String> {
-    let result = Result {
-        node_count: node_count.to_string(),
-        mis_count: mis_count,
-        running_time: running_time.to_string(),
-    };
-
-    let serialized = serde_json::to_string_pretty(&result).unwrap();
-
-    let result_filename = format!("{filename}.json");
-
-    let mut file = File::create(&result_filename)?;
-
-    file.write_all(serialized.as_bytes())?;
-
-    Ok(result_filename)
-}
+mod serialize;
+use serialize::save_result_to_json;
 
 fn read_input() -> String {
     let mut input = String::new();
@@ -117,7 +62,7 @@ fn main() {
 
                         println!("Completed in {} ms", running_time);
 
-                        match save_result_to_json(&filename, node_count, mis_count, running_time) {
+                        match save_result_to_json(&filename, node_count.to_string(), mis_count.to_string(), running_time.to_string()) {
                             Ok(filename) => println!("Result saved in {}", filename),
                             Err(e) => eprintln!("Failed to save result: {}", e),
                         }
@@ -144,7 +89,7 @@ fn main() {
                     println!("Tree too large to print");
                 }
 
-                match save_tree_to_csv(&tree) {
+                match save_tree_to_csv(tree.get_nodes()) {
                     Ok(filename) => {
                         println!("Saved as {}", filename);
 
@@ -160,7 +105,7 @@ fn main() {
 
                         println!("Completed in {} ms", running_time);
 
-                        match save_result_to_json(&filename, node_count, mis_count, running_time) {
+                        match save_result_to_json(&filename, node_count.to_string(), mis_count.to_string(), running_time.to_string()) {
                             Ok(filename) => println!("Result saved in {}", filename),
                             Err(e) => eprintln!("Failed to save result: {}", e),
                         }
