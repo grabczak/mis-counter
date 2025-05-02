@@ -21,6 +21,8 @@ fn read_input() -> String {
 }
 
 fn display_mis_count(filename: String) -> () {
+    println!("Loading tree...");
+
     match read_tree_from_csv(filename.as_str()) {
         Ok(data) => {
             let tree = Tree::new(0, data);
@@ -29,13 +31,13 @@ fn display_mis_count(filename: String) -> () {
 
             let node_count = tree.node_count();
 
-            println!();
             if node_count <= 100 {
                 tree.print();
             } else {
                 println!("Tree too large to display");
             }
-            println!();
+
+            println!("Counting MIS...");
 
             let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 
@@ -52,6 +54,8 @@ fn display_mis_count(filename: String) -> () {
             let running_time = end - start;
 
             println!("Completed in {} ms", running_time);
+
+            println!("Saving result...");
 
             match save_result_to_json(&filename, node_count.to_string(), mis_count.to_string(), running_time.to_string()) {
                 Ok(filename) => println!("Result saved as {}", filename),
@@ -70,28 +74,28 @@ fn main() {
 
         let option = read_input();
 
-        println!();
-
         match option.as_str() {
             "1" => {
-                println!("Enter the filename: ");
+                println!("Filename:");
 
                 let filename = read_input();
 
                 display_mis_count(filename);
             },
             "2" => {
-                println!("Enter node count (default 10): ");
+                println!("Node count (default 10):");
 
                 let node_count = read_input().parse::<usize>().unwrap_or(10);
 
-                println!("Enter max children (default equal to node count): ");
+                println!("Max children (default equal to node count):");
 
                 let max_children = read_input().parse::<usize>().unwrap_or(node_count).clamp(1, node_count);
 
-                println!("Generating a tree with {} nodes, each node with at most {} children", node_count, max_children);
+                println!("Generating a tree with {} nodes, each node with at most {} children...", node_count, max_children);
 
                 let tree = Tree::generate(node_count, max_children);
+
+                println!("Saving tree...");
 
                 match save_tree_to_csv(tree.get_nodes()) {
                     Ok(filename) => {
@@ -109,7 +113,5 @@ fn main() {
                 continue;
             },
         }
-
-        println!();
     }
 }
