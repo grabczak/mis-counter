@@ -1,14 +1,11 @@
 use std::io;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+mod csv;
+use csv::{read_tree_from_csv, save_tree_to_csv, save_result_to_csv};
+
 mod tree;
 use tree::Tree;
-
-mod csv;
-use csv::{read_tree_from_csv, save_tree_to_csv};
-
-mod serialize;
-use serialize::save_result_to_json;
 
 fn read_input() -> String {
     let mut input = String::new();
@@ -57,7 +54,7 @@ fn display_mis_count(filename: String) -> () {
 
             println!("Saving result...");
 
-            match save_result_to_json(&filename, node_count.to_string(), mis_count.to_string(), running_time.to_string()) {
+            match save_result_to_csv(&filename, mis_count) {
                 Ok(filename) => println!("Result saved as {}", filename),
                 Err(e) => eprintln!("Failed to save result: {}", e),
             }

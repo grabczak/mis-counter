@@ -1,6 +1,7 @@
+use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufWriter, Write};
-use std::collections::HashMap;
+use std::path::Path;
 use chrono::Local;
 
 pub fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<usize>>> {
@@ -35,3 +36,30 @@ pub fn save_tree_to_csv(nodes: HashMap<usize, Vec<usize>>) -> io::Result<String>
 
     Ok(filename)
 }
+
+pub fn save_result_to_csv(filename: &str, value: String) -> io::Result<String> {
+    let result_filename = insert_result_suffix(filename);
+
+    let mut file = File::create(&result_filename)?;
+
+    file.write_all(value.as_bytes())?;
+
+    Ok(result_filename)
+}
+
+fn insert_result_suffix(filename: &str) -> String {
+    let path = Path::new(filename);
+    let parent = path.parent().unwrap_or_else(|| Path::new(""));
+
+    let stem = path.file_stem().unwrap_or_default().to_string_lossy();
+    let extension = path.extension().unwrap_or_default().to_string_lossy();
+
+    let new_filename = if extension.is_empty() {
+        format!("{stem}.result")
+    } else {
+        format!("{stem}.result.{extension}")
+    };
+
+    parent.join(new_filename).to_string_lossy().to_string()
+}
+
