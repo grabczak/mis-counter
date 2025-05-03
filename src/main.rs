@@ -1,5 +1,5 @@
 use std::io;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::Instant;
 
 mod csv;
 use csv::{read_tree_from_csv, save_tree_to_csv, save_result_to_file};
@@ -7,7 +7,7 @@ use csv::{read_tree_from_csv, save_tree_to_csv, save_result_to_file};
 mod tree;
 use tree::Tree;
 
-fn read_input() -> String {
+fn read_line_input() -> String {
     let mut input = String::new();
 
     io::stdin()
@@ -17,7 +17,7 @@ fn read_input() -> String {
     input.trim().to_string()
 }
 
-fn display_mis_count(filename: String) -> () {
+fn display_mis_count(filename: String) {
     println!("Loading tree...");
 
     match read_tree_from_csv(filename.as_str()) {
@@ -36,11 +36,11 @@ fn display_mis_count(filename: String) -> () {
 
             println!("Counting MIS...");
 
-            let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+            let start = Instant::now();
 
             let mis_count = tree.count_mis();
 
-            let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+            let duration = start.elapsed().as_millis();
 
             if mis_count.len() <= 100 {
                 println!("MIS count: {}", mis_count);
@@ -48,9 +48,7 @@ fn display_mis_count(filename: String) -> () {
                 println!("MIS count too large to display");
             }
 
-            let running_time = end - start;
-
-            println!("Completed in {} ms", running_time);
+            println!("Completed in {} ms", duration);
 
             println!("Saving result...");
 
@@ -69,24 +67,24 @@ fn main() {
         println!("2. Generate");
         println!("3. Quit");
 
-        let option = read_input();
+        let option = read_line_input();
 
         match option.as_str() {
             "1" => {
                 println!("Filename:");
 
-                let filename = read_input();
+                let filename = read_line_input();
 
                 display_mis_count(filename);
             },
             "2" => {
                 println!("Node count (default 10):");
 
-                let node_count = read_input().parse::<usize>().unwrap_or(10);
+                let node_count = read_line_input().parse::<usize>().unwrap_or(10);
 
                 println!("Max children (default equal to node count):");
 
-                let max_children = read_input().parse::<usize>().unwrap_or(node_count).clamp(1, node_count);
+                let max_children = read_line_input().parse::<usize>().unwrap_or(node_count).clamp(1, node_count);
 
                 println!("Generating a tree with {} nodes, each node with at most {} children...", node_count, max_children);
 
