@@ -14,7 +14,7 @@ pub struct Tree {
 }
 
 impl Tree {
-    pub fn new(root: Node, csv: Vec<Vec<Node>>) -> Self {
+    pub fn from_adjacency_list(root: Node, csv: Vec<Vec<Node>>) -> Self {
         let mut nodes: Nodes = HashMap::new();
 
         for node in csv {
@@ -26,7 +26,7 @@ impl Tree {
         Tree { root, nodes }
     }
 
-    pub fn get_nodes(&self) -> Nodes {
+    pub fn nodes(&self) -> Nodes {
         self.nodes.clone()
     }
 
@@ -59,8 +59,8 @@ impl Tree {
     }
 
     pub fn count_mis(&self) -> String {
-        let mut mu: HashMap<Node, UBig> = HashMap::new();
-        let mut nu: HashMap<Node, UBig> = HashMap::new();
+        let mut with_node: HashMap<Node, UBig> = HashMap::new();
+        let mut without_node: HashMap<Node, UBig> = HashMap::new();
 
         let post_order_nodes = self.post_order();
 
@@ -69,25 +69,25 @@ impl Tree {
             let mut n: UBig = ubig!(1);
 
             for child in self.children(node) {
-                m = m * mu.get(&child).unwrap_or(&ubig!(0));
+                m = m * with_node.get(&child).unwrap_or(&ubig!(0));
 
-                n = n * nu.get(&child).unwrap_or(&ubig!(0));
+                n = n * without_node.get(&child).unwrap_or(&ubig!(0));
             }
 
-            nu.insert(node, m - n);
+            without_node.insert(node, m - n);
 
             let mut k: UBig = ubig!(1);
 
             for grandchild in self.grandchildren(node) {
-                k = k * mu.get(&grandchild).unwrap_or(&ubig!(0));
+                k = k * with_node.get(&grandchild).unwrap_or(&ubig!(0));
             }
 
-            k = k + nu.get(&node).unwrap_or(&ubig!(0));
+            k = k + without_node.get(&node).unwrap_or(&ubig!(0));
 
-            mu.insert(node, k);
+            with_node.insert(node, k);
         }
 
-        mu.get(&self.root).unwrap_or(&ubig!(0)).to_string()
+        with_node.get(&self.root).unwrap_or(&ubig!(0)).to_string()
     }
 
     pub fn print(&self) {
@@ -112,27 +112,27 @@ impl Tree {
     }
 
     pub fn generate(node_count: usize, max_children: usize) -> Self {
-        let mut rng = rng();
+        let mut thread_rng = rng();
         let mut nodes: Nodes = HashMap::new();
         let all_values: Vec<Node> = Vec::from_iter(0..node_count); // root is 0
 
         let root = 0;
         let mut index = 1;
-        let mut queue = Vec::from([0]);
+        let mut queue = VecDeque::from([0]);
 
         while !queue.is_empty() && index < node_count {
-            let parent = queue.remove(0);
+            let parent = queue.pop_front().unwrap();
             let mut children = Vec::new();
 
             let remaining = node_count - index;
             let max_assignable = remaining.min(max_children);
-            let child_count = rng.random_range(1..=max_assignable);
+            let child_count = thread_rng.random_range(1..=max_assignable);
 
             for _ in 0..child_count {
                 let child = all_values[index];
                 index += 1;
                 children.push(child);
-                queue.push(child);
+                queue.push_back(child);
             }
 
             nodes.insert(parent, children);

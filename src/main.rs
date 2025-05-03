@@ -22,7 +22,7 @@ fn display_mis_count(filename: String) -> () {
 
     match read_tree_from_csv(filename.as_str()) {
         Ok(data) => {
-            let tree = Tree::new(0, data);
+            let tree = Tree::from_adjacency_list(0, data);
 
             println!("Tree loaded from {}", filename);
 
@@ -96,7 +96,7 @@ fn main() {
 
                 println!("Saving tree...");
 
-                match save_tree_to_csv(tree.get_nodes()) {
+                match save_tree_to_csv(tree.nodes()) {
                     Ok(filename) => {
                         println!("Tree saved as {}", filename);
 
