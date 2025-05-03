@@ -100,7 +100,7 @@ impl Tree {
         while let Some(current) = queue.pop_front() {
             let children = self.children(current);
 
-            println!("{} -> {}", current, children.iter().map(|c| c.to_string()).collect::<Vec<String>>().join(" "));
+            println!("{} -> [{}]", current, children.iter().map(|c| c.to_string()).collect::<Vec<String>>().join(", "));
 
             for &child in &children {
                 if !visited.contains(&child) {

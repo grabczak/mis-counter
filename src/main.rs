@@ -2,7 +2,7 @@ use std::io;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 mod csv;
-use csv::{read_tree_from_csv, save_tree_to_csv, save_result_to_csv};
+use csv::{read_tree_from_csv, save_tree_to_csv, save_result_to_file};
 
 mod tree;
 use tree::Tree;
@@ -54,7 +54,7 @@ fn display_mis_count(filename: String) -> () {
 
             println!("Saving result...");
 
-            match save_result_to_csv(&filename, mis_count) {
+            match save_result_to_file(&filename, mis_count) {
                 Ok(filename) => println!("Result saved as {}", filename),
                 Err(e) => eprintln!("Failed to save result: {}", e),
             }

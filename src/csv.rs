@@ -13,7 +13,7 @@ pub fn read_tree_from_csv(filename: &str) -> io::Result<Vec<Vec<usize>>> {
     for line_result in reader.lines() {
         let line = line_result?;
         let numbers: Vec<usize> = line
-            .split_whitespace()
+            .split(|c| c == ' ' || c == ',' || c == '\t')
             .filter_map(|s| s.trim().parse::<usize>().ok())
             .collect();
         data.push(numbers);
@@ -29,15 +29,18 @@ pub fn save_tree_to_csv(nodes: HashMap<usize, Vec<usize>>) -> io::Result<String>
     let file = File::create(&filename)?;
     let mut writer = BufWriter::new(file);
 
-    for (parent, children) in nodes {
+    let mut items: Vec<_> = nodes.into_iter().collect();
+    items.sort_by_key(|(k, _)| *k);
+
+    for (parent, children) in items {
         let line = format!("{} {}", parent, children.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(" "));
-        writeln!(writer, "{}", line.trim())?;
+        writeln!(writer, "{}", line)?;
     }
 
     Ok(filename)
 }
 
-pub fn save_result_to_csv(filename: &str, value: String) -> io::Result<String> {
+pub fn save_result_to_file(filename: &str, value: String) -> io::Result<String> {
     let result_filename = insert_result_suffix(filename);
 
     let mut file = File::create(&result_filename)?;
