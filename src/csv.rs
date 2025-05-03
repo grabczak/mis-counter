@@ -42,7 +42,7 @@ pub fn save_result_to_csv(filename: &str, value: String) -> io::Result<String> {
 
     let mut file = File::create(&result_filename)?;
 
-    file.write_all(value.as_bytes())?;
+    writeln!(file, "{}", value)?;
 
     Ok(result_filename)
 }
