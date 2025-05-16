@@ -35,11 +35,21 @@ impl Tree {
     }
 
     fn children(&self, node: Node) -> Children {
-        self.nodes.get(&node).unwrap_or(&Vec::new()).to_vec()
+        self.nodes.get(&node).cloned().unwrap_or_else(Vec::new)
     }
 
     fn grandchildren(&self, node: Node) -> Children {
-        self.children(node).iter().flat_map(|child| self.children(*child)).collect()
+        let mut result = Vec::new();
+
+        if let Some(children) = self.nodes.get(&node) {
+            for &child in children {
+                if let Some(grandchildren) = self.nodes.get(&child) {
+                    result.extend(grandchildren.iter().cloned());
+                }
+            }
+        }
+
+        result
     }
 
     fn post_order(&self) -> Vec<Node> {
