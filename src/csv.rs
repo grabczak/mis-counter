@@ -55,13 +55,8 @@ fn insert_result_suffix(filename: &str) -> String {
     let parent = path.parent().unwrap_or_else(|| Path::new(""));
 
     let stem = path.file_stem().unwrap_or_default().to_string_lossy();
-    let extension = path.extension().unwrap_or_default().to_string_lossy();
 
-    let new_filename = if extension.is_empty() {
-        format!("{stem}.result")
-    } else {
-        format!("{stem}.result.{extension}")
-    };
+    let new_filename = format!("{stem}.result");
 
     parent.join(new_filename).to_string_lossy().to_string()
 }

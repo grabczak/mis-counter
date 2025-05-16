@@ -18,7 +18,7 @@ fn read_line_input() -> String {
 }
 
 fn display_mis_count(filename: String) {
-    println!("Loading tree...");
+    println!("\nLoading tree...");
 
     match read_tree_from_csv(filename.as_str()) {
         Ok(data) => {
@@ -28,13 +28,14 @@ fn display_mis_count(filename: String) {
 
             let node_count = tree.node_count();
 
+            println!();
             if node_count <= 100 {
                 tree.print();
             } else {
                 println!("Tree too large to display");
             }
 
-            println!("Counting MIS...");
+            println!("\nCounting MIS...");
 
             let start = Instant::now();
 
@@ -50,7 +51,7 @@ fn display_mis_count(filename: String) {
 
             println!("Completed in {} ms", duration);
 
-            println!("Saving result...");
+            println!("\nSaving result...");
 
             match save_result_to_file(&filename, mis_count) {
                 Ok(filename) => println!("Result saved as {}", filename),
@@ -71,14 +72,14 @@ fn main() {
 
         match option.as_str() {
             "1" => {
-                println!("Filename:");
+                println!("\nFilename:");
 
                 let filename = read_line_input();
 
                 display_mis_count(filename);
             },
             "2" => {
-                println!("Node count (default 10):");
+                println!("\nNode count (default 10):");
 
                 let node_count = read_line_input().parse::<usize>().unwrap_or(10);
 
@@ -86,13 +87,13 @@ fn main() {
 
                 let max_children = read_line_input().parse::<usize>().unwrap_or(node_count).clamp(1, node_count);
 
-                println!("Generating a tree with {} nodes, each node with at most {} children...", node_count, max_children);
+                println!("\nGenerating a tree with {} nodes, each node with at most {} children...", node_count, max_children);
 
                 let tree = Tree::generate(node_count, max_children);
 
                 println!("Tree generated successfully");
 
-                println!("Saving tree...");
+                println!("\nSaving tree...");
 
                 match save_tree_to_csv(tree.nodes()) {
                     Ok(filename) => {
