@@ -1,4 +1,4 @@
-use std::io;
+use std::io::{self, Write};
 use std::time::Instant;
 
 mod csv;
@@ -9,6 +9,8 @@ use tree::Tree;
 
 fn read_line_input() -> String {
     let mut input = String::new();
+
+    let _ = io::stdout().flush();
 
     io::stdin()
         .read_line(&mut input)
@@ -28,11 +30,13 @@ fn display_mis_count(filename: String) {
 
             let node_count = tree.node_count();
 
-            println!();
-            if node_count <= 100 {
+            print!("\nTree has {} node(s). Display tree? (y/n) >> ", node_count);
+
+            let ask_display_tree = read_line_input();
+
+            if ask_display_tree.to_lowercase() == "y" {
+                println!();
                 tree.print();
-            } else {
-                println!("Tree too large to display");
             }
 
             println!("\nCounting MIS...");
@@ -43,51 +47,57 @@ fn display_mis_count(filename: String) {
 
             let duration = start.elapsed().as_millis();
 
-            if mis_count.len() <= 100 {
-                println!("MIS count: {}", mis_count);
-            } else {
-                println!("MIS count too large to display");
-            }
-
             println!("Completed in {} ms", duration);
+
+            let mis_count_length = mis_count.len();
+
+            print!("\nMIS count has {} digit(s). Display MIS count? (y/n) >> ", mis_count_length);
+
+            let ask_display_mis_count = read_line_input();
+
+            if ask_display_mis_count.to_lowercase() == "y" {
+                println!("\n{}", mis_count);
+            }
 
             println!("\nSaving result...");
 
             match save_result_to_file(&filename, mis_count) {
                 Ok(filename) => println!("Result saved as {}", filename),
-                Err(e) => eprintln!("Failed to save result: {}", e),
+                Err(e) => eprintln!("Failed to save result >> {}", e),
             }
         },
-        Err(e) => eprintln!("Failed to read file: {}", e),
+        Err(e) => eprintln!("Failed to read file >> {}", e),
     }
 }
 
 fn main() {
     loop {
+        println!("MIS COUNTER VER 1.0");
         println!("1. Read");
         println!("2. Generate");
         println!("3. Quit");
+        print!("Pick an option to proceed >> ");
 
         let option = read_line_input();
 
         match option.as_str() {
             "1" => {
-                println!("\nFilename:");
+                print!("\nFilename >> ");
 
                 let filename = read_line_input();
 
                 display_mis_count(filename);
             },
             "2" => {
-                println!("\nNode count (default 10):");
+                print!("\nNode count (default 10) >> ");
 
                 let node_count = read_line_input().parse::<usize>().unwrap_or(10);
 
-                println!("Max children (default equal to node count):");
+                print!("Max children (default equal to node count) >> ");
 
                 let max_children = read_line_input().parse::<usize>().unwrap_or(node_count).clamp(1, node_count);
 
-                println!("\nGenerating a tree with {} nodes, each node with at most {} children...", node_count, max_children);
+                println!("\nGenerating a tree with {} node(s), each node with at most {} child(ren)...", node_count, max_children);
 
                 let tree = Tree::generate(node_count, max_children);
 
@@ -101,17 +111,19 @@ fn main() {
 
                         display_mis_count(filename);
                     },
-                    Err(e) => eprintln!("Failed to save: {}", e)
+                    Err(e) => eprintln!("Failed to save >> {}", e)
                 }
             },
             "3" => {
+                println!("\nGoodbye\n");
                 break;
             },
             _ => {
+                println!("\nInvalid option\n");
                 continue;
             },
         }
 
-        println!("");
+        println!();
     }
 }
