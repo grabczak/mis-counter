@@ -34,6 +34,10 @@ impl Tree {
         self.nodes.len()
     }
 
+    fn is_empty(&self) -> bool {
+        self.node_count() == 0
+    }
+
     fn children(&self, node: Node) -> Children {
         self.nodes.get(&node).cloned().unwrap_or_else(Vec::new)
     }
@@ -101,6 +105,11 @@ impl Tree {
     }
 
     pub fn print(&self) {
+        if self.is_empty() {
+            println!("Empty");
+            return;
+        }
+
         let mut queue = VecDeque::new();
         let mut visited = HashSet::new();
 
