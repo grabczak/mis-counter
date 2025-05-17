@@ -38,9 +38,9 @@ You can run the executable directly with:
 ./target/release/mis-tree
 ```
 
-## 📥 Input / 📤 Output Format
+## 📥 Input
 
-The program reads a tree structure from text file and writes the number of _maximal independent sets (MIS)_ to a `.result` file in plain text.
+The program reads a tree structure from a text file.
 
 The tree is represented using _adjacency lists_, where each line lists a node and its direct children. The root is assumed to be node `0`.
 
