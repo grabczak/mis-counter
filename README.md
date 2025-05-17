@@ -38,7 +38,7 @@ You can run the executable directly with:
 ./target/release/mis-tree
 ```
 
-## 📥 Input
+## 📥 Input Format
 
 The program reads a tree structure from a text file.
 
