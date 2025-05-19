@@ -32,12 +32,6 @@ The release binary will be available at:
 target/release/mis-tree
 ```
 
-You can run the executable directly with:
-
-```bash
-./target/release/mis-tree
-```
-
 ## 📥 Input Format
 
 The program reads a tree structure from a text file.
@@ -54,7 +48,7 @@ Each line follows the format:
 - The tree must be connected and acyclic.
 - The order of lines does not matter, as long as the tree structure is valid.
 
-### ✅ Example Input
+### ✅ Example
 
 ```
 0 1 2 3
