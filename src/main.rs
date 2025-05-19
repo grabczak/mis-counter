@@ -92,7 +92,7 @@ fn main() {
             "2" => {
                 print!("\nNode count (default 10) >> ");
 
-                let node_count = read_line_input().parse::<usize>().unwrap_or(10);
+                let node_count = read_line_input().parse::<usize>().unwrap_or(10).max(1);
 
                 print!("Max children (default equal to node count) >> ");
 
