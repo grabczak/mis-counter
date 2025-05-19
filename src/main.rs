@@ -83,7 +83,7 @@ fn main() {
 
         match option.as_str() {
             "1" => {
-                print!("\nFilename >> ");
+                print!("\nPath to file >> ");
 
                 let path = read_line_input();
 
