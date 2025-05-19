@@ -1,5 +1,6 @@
 use std::io::{self, Write};
 use std::time::Instant;
+use std::path::PathBuf;
 
 mod csv;
 use csv::{read_tree_from_csv, save_tree_to_csv, save_result_to_file};
@@ -19,14 +20,14 @@ fn read_line_input() -> String {
     input.trim().to_string()
 }
 
-fn display_mis_count(filename: String) {
+fn display_mis_count(path: &PathBuf) {
     println!("\nLoading tree...");
 
-    match read_tree_from_csv(filename.as_str()) {
+    match read_tree_from_csv(path.to_path_buf()) {
         Ok(data) => {
             let tree = Tree::from_adjacency_list(0, data);
 
-            println!("Tree loaded from {}", filename);
+            println!("Tree loaded from {}", path.display());
 
             let node_count = tree.node_count();
 
@@ -61,8 +62,8 @@ fn display_mis_count(filename: String) {
 
             println!("\nSaving result...");
 
-            match save_result_to_file(&filename, mis_count) {
-                Ok(filename) => println!("Result saved as {}", filename),
+            match save_result_to_file(path.to_path_buf(), mis_count) {
+                Ok(path) => println!("Result saved as {}", path.display()),
                 Err(e) => eprintln!("Failed to save result >> {}", e),
             }
         },
@@ -84,9 +85,9 @@ fn main() {
             "1" => {
                 print!("\nFilename >> ");
 
-                let filename = read_line_input();
+                let path = read_line_input();
 
-                display_mis_count(filename);
+                display_mis_count(&path.into());
             },
             "2" => {
                 print!("\nNode count (default 10) >> ");
@@ -106,10 +107,10 @@ fn main() {
                 println!("\nSaving tree...");
 
                 match save_tree_to_csv(tree.nodes()) {
-                    Ok(filename) => {
-                        println!("Tree saved as {}", filename);
+                    Ok(path) => {
+                        println!("Tree saved as {}", path.display());
 
-                        display_mis_count(filename);
+                        display_mis_count(&path);
                     },
                     Err(e) => eprintln!("Failed to save >> {}", e)
                 }
