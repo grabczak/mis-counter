@@ -56,8 +56,7 @@ fn insert_result_suffix(path: PathBuf) -> PathBuf {
 
     let stem = path.file_stem().unwrap_or_default().to_string_lossy();
 
-    let new_path = format!("{stem}.result");
+    let new_path = format!("{stem}-result.txt");
 
     parent.join(new_path)
 }
-
