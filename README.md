@@ -29,7 +29,7 @@ cargo build --release
 The release binary will be available at:
 
 ```bash
-target/release/mis-tree
+target/release/mis-counter
 ```
 
 ## 📥 Input Format
